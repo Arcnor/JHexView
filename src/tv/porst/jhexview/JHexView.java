@@ -23,6 +23,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 
 import javax.swing.AbstractAction;
@@ -170,12 +171,12 @@ public final class JHexView extends JComponent {
 	/**
 	 * Scrollbar that is used to scroll through the dataset.
 	 */
-	private final JScrollBar m_scrollbar = new JScrollBar(JScrollBar.VERTICAL, 0, 1, 0, 1);;
+	private final JScrollBar m_scrollbar = new JScrollBar(JScrollBar.VERTICAL, 0, 1, 0, 1);
 
 	/**
 	 * Horizontal scrollbar that is used to scroll through the dataset.
 	 */
-	private final JScrollBar m_horizontalScrollbar = new JScrollBar(JScrollBar.HORIZONTAL, 0, 1, 0, 1);;
+	private final JScrollBar m_horizontalScrollbar = new JScrollBar(JScrollBar.HORIZONTAL, 0, 1, 0, 1);
 
 	/**
 	 * The first visible row.
@@ -331,7 +332,7 @@ public final class JHexView extends JComponent {
 	 */
 	private final TabAction m_tabAction = new TabAction();
 
-	private int m_lastHighlightedNibble;
+	private int m_lastHighlightedNibble, m_prevLastHighlihtedNibble;
 
 	private IColormap m_colormap;
 
@@ -449,8 +450,6 @@ public final class JHexView extends JComponent {
 			g.setColor(m_disabledColor != m_bgColorAscii ? m_disabledColor : Color.WHITE);
 		}
 
-		final int characterWidth = getCharacterWidth(g);
-
 		final int initx = getAsciiViewLeft() + m_paddingAsciiLeft;
 
 		int x = initx;
@@ -549,7 +548,7 @@ public final class JHexView extends JComponent {
 				g.drawString("?", x, y);
 			}
 
-			x += characterWidth;
+			x += m_charWidth;
 
 			if (range != null && range.getStart() + range.getSize() <= currentOffset) {
 
@@ -602,13 +601,11 @@ public final class JHexView extends JComponent {
 			return;
 		}
 
-		final int characterSize = getCharacterWidth(g);
-
 		if (m_activeView == Views.HEX_VIEW) {
-			drawCaretHexWindow(g, characterSize, m_rowHeight);
+			drawCaretHexWindow(g);
 		}
 		else {
-			drawCaretAsciiWindow(g, characterSize, m_rowHeight);
+			drawCaretAsciiWindow(g);
 		}
 
 	}
@@ -620,7 +617,7 @@ public final class JHexView extends JComponent {
 	 * @param characterWidth The width of a single character.
 	 * @param characterHeight The height of a single character.
 	 */
-	private void drawCaretAsciiWindow(final Graphics g, final int characterWidth, final int characterHeight) {
+	private void drawCaretAsciiWindow(final Graphics g) {
 
 		final int currentRow = getCurrentRow() - m_firstRow;
 		final int currentColumn = getCurrentColumn();
@@ -630,22 +627,20 @@ public final class JHexView extends JComponent {
 		final int startLeft = 9 + m_offsetViewWidth + m_hexViewWidth;
 
 		// Calculate the position of the current character in the row
-		final int x = -m_firstColumn * m_charWidth + startLeft + currentCharacter * characterWidth;
+		final int x = -m_firstColumn * m_charWidth + startLeft + currentCharacter * m_charWidth;
 
 		// Calculate the position of the row
-		final int y = 3 + m_paddingTop - characterHeight + characterHeight * currentRow;
+		final int y = 3 + m_paddingTop - m_rowHeight + m_rowHeight * currentRow;
 
-		m_caret.draw(g, x, y, characterHeight);
+		m_caret.draw(g, x, y, m_rowHeight);
 	}
 
 	/**
 	 * Draws the caret in the hex window.
 	 *
 	 * @param g The graphic context of the hex panel.
-	 * @param characterWidth The width of a single character.
-	 * @param characterHeight The height of a single character.
 	 */
-	private void drawCaretHexWindow(final Graphics g, final int characterWidth, final int characterHeight) {
+	private void drawCaretHexWindow(final Graphics g) {
 
 		final int currentRow = getCurrentRow() - m_firstRow;
 		final int currentColumn = getCurrentColumn();
@@ -657,12 +652,12 @@ public final class JHexView extends JComponent {
 		final int paddingColumns = currentColumn / (2 * m_bytesPerColumn) * m_columnSpacing;
 
 		// Calculate the position of the character in the row.
-		final int x = -m_firstColumn * m_charWidth + startLeft + currentColumn * characterWidth + paddingColumns;
+		final int x = -m_firstColumn * m_charWidth + startLeft + currentColumn * m_charWidth + paddingColumns;
 
 		// Calculate the position of the row.
-		final int y = 3 + m_paddingTop - characterHeight + characterHeight * currentRow;
+		final int y = 3 + m_paddingTop - m_rowHeight + m_rowHeight * currentRow;
 
-		m_caret.draw(g, x, y, characterHeight);
+		m_caret.draw(g, x, y, m_rowHeight);
 	}
 
 	/**
@@ -672,7 +667,7 @@ public final class JHexView extends JComponent {
 	 */
 	private void drawHexView(final Graphics g) {
 
-		final int standardSize = 2 * getCharacterWidth(g);
+		final int standardSize = 2 * m_charWidth;
 
 		final int firstX = -m_firstColumn * m_charWidth + m_paddingHexLeft + m_offsetViewWidth;
 
@@ -784,13 +779,11 @@ public final class JHexView extends JComponent {
 	 * @param g The graphics context where the highlighting is drawn.
 	 */
 	private void drawMouseOverHighlighting(final Graphics g) {
-		g.setColor(m_colorHighlight);
-
-		m_lastHighlightedNibble = getNibbleAtCoordinate(m_lastMouseX, m_lastMouseY);
-
 		if (m_lastHighlightedNibble == -1) {
 			return;
 		}
+
+		g.setColor(m_colorHighlight);
 
 		// Find out in which view the mouse currently resides.
 		final Views lastHighlightedView = m_lastMouseX >= getAsciiViewLeft() ? Views.ASCII_VIEW : Views.HEX_VIEW;
@@ -1324,15 +1317,6 @@ public final class JHexView extends JComponent {
 	}
 
 	/**
-	 * Resets the current graphic buffer and prepares it for another round
-	 * of drawing.
-	 */
-	private void resetBufferedGraphic() {
-		bufferGraphics.clearRect(0, 0, getWidth(), getHeight());
-		bufferGraphics.setFont(m_font);
-	}
-
-	/**
 	 * Scrolls the scroll bar so that it matches the given position.
 	 *
 	 * @param position The position to scroll to.
@@ -1439,12 +1423,6 @@ public final class JHexView extends JComponent {
 	@Override
 	protected void paintComponent(final Graphics gx) {
 		super.paintComponent(gx);
-
-		// Make room for a new graphic
-		resetBufferedGraphic();
-
-		// Calculate current sizes of characters and rows
-		calculateSizes();
 
 		updateOffsetViewWidth();
 
@@ -1979,6 +1957,10 @@ public final class JHexView extends JComponent {
 	 * @param value The new number of bytes displayed per row.
 	 *
 	 * @throws IllegalArgumentException Thrown if the new number is smaller than 1.
+         *
+         * @beaninfo
+         *      expert: true
+         *      description: Current number of bytes displayed per row
 	 */
 	public void setBytesPerRow(final int value) {
 
@@ -2003,6 +1985,9 @@ public final class JHexView extends JComponent {
 	 * @param spacing The spacing between columns in pixels.
 	 *
 	 * @throws IllegalArgumentException Thrown if the new spacing is smaller than 1.
+         *
+         * @beaninfo
+         *   description: The preferred vertical alignment of the component.
 	 */
 	public void setColumnSpacing(final int spacing) {
 
@@ -2398,6 +2383,10 @@ public final class JHexView extends JComponent {
 			img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
 			bufferGraphics = img.getGraphics();
+            bufferGraphics.setFont(m_font);
+
+            // Calculate current sizes of characters and rows
+            calculateSizes();
 		}
 
 		public void componentShown(final ComponentEvent arg0) {
@@ -2499,7 +2488,12 @@ public final class JHexView extends JComponent {
 			m_lastMouseX = arg0.getX();
 			m_lastMouseY = arg0.getY();
 
-			repaint();
+            m_lastHighlightedNibble = getNibbleAtCoordinate(m_lastMouseX, m_lastMouseY);
+            if (m_lastHighlightedNibble != m_prevLastHighlihtedNibble) {
+                m_prevLastHighlihtedNibble = m_lastHighlightedNibble;
+                repaint();
+            }
+
 		}
 
 		public void mousePressed(final MouseEvent event) {
