@@ -1,6 +1,8 @@
 package tv.porst.jhexview;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Data provider that provides data to the hex view component from a
@@ -8,6 +10,8 @@ import java.util.Arrays;
  * in memory and do not have to reload memory from an external source.
  */
 public final class SimpleDataProvider implements IDataProvider {
+
+	private Set<IDataChangedListener> _listeners;
 
 	private final byte[] m_data;
 
@@ -17,6 +21,17 @@ public final class SimpleDataProvider implements IDataProvider {
 
 	@Override
 	public void addListener(final IDataChangedListener listener) {
+		if (_listeners == null) {
+			_listeners = new HashSet<IDataChangedListener>();
+		}
+		_listeners.add(listener);
+	}
+
+	@Override
+	public void removeListener(final IDataChangedListener listener) {
+		if (_listeners != null) {
+			_listeners.remove(listener);
+		}
 	}
 
 	@Override
@@ -54,11 +69,12 @@ public final class SimpleDataProvider implements IDataProvider {
 	}
 
 	@Override
-	public void removeListener(final IDataChangedListener listener) {
-	}
-
-	@Override
 	public void setData(final long offset, final byte[] data) {
 		System.arraycopy(data, 0, this.m_data, (int) offset, data.length);
+		if (_listeners != null) {
+			for (final IDataChangedListener l : _listeners) {
+				l.dataChanged();
+			}
+		}
 	}
 }
