@@ -4,19 +4,19 @@ public interface IDataProvider {
 
 	void addListener(final IDataChangedListener hexView);
 
+	void removeListener(IDataChangedListener listener);
+
 	byte[] getData();
 
-	byte[] getData(long offset, int length);
+	byte[] getData(long offset, long length);
 
-	int getDataLength();
+	long getDataLength();
 
-	boolean hasData(long start, int length);
+	void setData(long offset, byte[] data);
+
+	boolean hasData(long start, long length);
 
 	boolean isEditable();
 
 	boolean keepTrying();
-
-	void removeListener(IDataChangedListener listener);
-
-	void setData(long offset, byte[] data);
 }

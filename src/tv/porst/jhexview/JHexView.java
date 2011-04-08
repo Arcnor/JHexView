@@ -457,7 +457,7 @@ public final class JHexView extends JComponent {
 		int y = m_paddingTop;
 
 		byte[] data = null;
-		int bytesToDraw;
+		long bytesToDraw;
 
 		if (m_status == DefinitionStatus.DEFINED) {
 			bytesToDraw = getBytesToDraw();
@@ -682,7 +682,7 @@ public final class JHexView extends JComponent {
 		boolean evenColumn = true;
 
 		byte[] data = null;
-		int bytesToDraw;
+		long bytesToDraw;
 
 		if (m_status == DefinitionStatus.DEFINED) {
 			bytesToDraw = getBytesToDraw();
@@ -696,7 +696,7 @@ public final class JHexView extends JComponent {
 
 		// Iterate over all bytes in the data set and
 		// print their hex value to the hex view.
-		for (int i = 0; i < bytesToDraw; i++, currentOffset++) {
+		for (long i = 0; i < bytesToDraw; i++, currentOffset++) {
 
 			final ColoredRange range = findColoredRange(currentOffset);
 
@@ -762,9 +762,9 @@ public final class JHexView extends JComponent {
 
 			if (m_status == DefinitionStatus.DEFINED) {
 				// Number of bytes shown in the current column
-				final int columnBytes = Math.min(m_dataProvider.getDataLength() - i, m_bytesPerColumn);
+				final int columnBytes = (int)Math.min(m_dataProvider.getDataLength() - i, m_bytesPerColumn);
 
-				final int dataPosition = m_flipBytes ? (i / m_bytesPerColumn) * m_bytesPerColumn + (columnBytes - (i % columnBytes) - 1) : i;
+				final int dataPosition = (int)(m_flipBytes ? (i / m_bytesPerColumn) * m_bytesPerColumn + (columnBytes - (i % columnBytes) - 1) : i);
 
 				// Print the data
 				g.drawString(HEX_BYTES[data[dataPosition] & 0xFF], x, y);
@@ -909,13 +909,13 @@ public final class JHexView extends JComponent {
 	 *
 	 * @return The number of bytes that need to be displayed.
 	 */
-	private int getBytesToDraw() {
+	private long getBytesToDraw() {
 
 		final int firstVisibleByte = getFirstVisibleByte();
 
 		final int maxBytes = getMaximumVisibleBytes();
 
-		final int restBytes = m_dataProvider.getDataLength() - firstVisibleByte;
+		final long restBytes = m_dataProvider.getDataLength() - firstVisibleByte;
 
 		return Math.min(maxBytes, restBytes);
 	}
@@ -1373,7 +1373,7 @@ public final class JHexView extends JComponent {
 		else {
 			final int visibleRows = getNumberOfVisibleRows();
 
-			final int totalRows = m_dataProvider.getDataLength() / m_bytesPerRow;
+			final int totalRows = (int)m_dataProvider.getDataLength() / m_bytesPerRow;
 			int scrollRange = 2 + totalRows - visibleRows;
 
 			if (scrollRange < 0) {
@@ -1470,7 +1470,7 @@ public final class JHexView extends JComponent {
 		// If the component has defined data, it can be drawn.
 		if (m_status == DefinitionStatus.DEFINED && m_dataProvider != null) {
 
-			final int bytesToDraw = getBytesToDraw();
+			final long bytesToDraw = getBytesToDraw();
 
 			if (bytesToDraw != 0 && !m_dataProvider.hasData(getFirstVisibleOffset(), bytesToDraw)) {
 
@@ -1793,7 +1793,7 @@ public final class JHexView extends JComponent {
 		return m_selectionLength;
 	}
 
-	public int getVisibleBytes() {
+	public long getVisibleBytes() {
 
 		final int visibleBytes = getMaximumVisibleBytes();
 
@@ -2671,9 +2671,9 @@ public final class JHexView extends JComponent {
 
 		private final long m_offset;
 
-		private final int m_size;
+		private final long m_size;
 
-		private WaitingForDataAction(final long offset, final int size) {
+		private WaitingForDataAction(final long offset, final long size) {
 			m_offset = offset;
 			m_size = size;
 		}

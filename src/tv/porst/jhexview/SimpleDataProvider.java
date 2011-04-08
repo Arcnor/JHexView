@@ -25,12 +25,12 @@ public final class SimpleDataProvider implements IDataProvider {
 	}
 
 	@Override
-	public byte[] getData(final long offset, final int length) {
+	public byte[] getData(final long offset, final long length) {
 		return Arrays.copyOfRange(this.m_data, (int) offset, (int) (offset + length));
 	}
 
 	@Override
-	public int getDataLength() {
+	public long getDataLength() {
 		return this.m_data.length;
 	}
 
@@ -39,7 +39,7 @@ public final class SimpleDataProvider implements IDataProvider {
 	}
 
 	@Override
-	public boolean hasData(final long offset, final int length) {
+	public boolean hasData(final long offset, final long length) {
 		return true;
 	}
 
