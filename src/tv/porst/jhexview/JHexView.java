@@ -1970,6 +1970,9 @@ public final class JHexView extends JComponent {
 
 		m_bytesPerRow = value;
 
+		updateHexViewWidth();
+		updatePreferredSize();
+
 		repaint();
 	}
 
