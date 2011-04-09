@@ -23,7 +23,6 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 
 import javax.swing.AbstractAction;
@@ -77,16 +76,19 @@ public final class JHexView extends JComponent {
 	 * The data set that is displayed in the component.
 	 */
 	private IDataProvider m_dataProvider;
+	public static final String PROP_DATA_PROVIDER = "dataProvider";
 
 	/**
 	 * Number of bytes shown per row.
 	 */
 	private int m_bytesPerRow = 16;
+	public static final String PROP_BYTES_PER_ROW = "bytesPerRow";
 
 	/**
 	 * Font used to draw the data.
 	 */
 	private Font m_font = new Font(GuiHelpers.getMonospaceFont(), 0, 12);
+	public static final String PROP_FONT = "font";
 
 	/**
 	 * Currently selected position. Note that this field
@@ -94,67 +96,80 @@ public final class JHexView extends JComponent {
 	 * can be selected.
 	 */
 	private long m_selectionStart = 0;
+	public static final String PROP_SELECTION_START = "selectionStart";
 
 	/**
 	 * Current selection length in nibbles. This value can be negative
 	 * if nibbles before the current position are selected.
 	 */
 	private long m_selectionLength = 0;
+	public static final String PROP_SELECTION_LENGTH = "selectionLength";
 
 	/**
 	 * Determines the window where the caret is shown.
 	 */
 	private Views m_activeView = Views.HEX_VIEW;
+	public static final String PROP_ACTIVE_VIEW = "activeView";
 
 	/**
 	 * Width of the hex view in pixels.
 	 */
 	private int m_hexViewWidth = 270;
+	public static final String PROP_HEX_VIEW_WIDTH = "hexViewWidth";
 
 	/**
 	 * Width of the space between columns in pixels.
 	 */
 	private int m_columnSpacing = 4;
+	public static final String PROP_COLUMN_SPACING = "columnSpacing";
 
 	/**
 	 * Number of bytes per column.
 	 */
 	private int m_bytesPerColumn = 2;
+	public static final String PROP_BYTES_PER_COLUMN = "bytesPerColumn";
 
 	/**
 	 * Background color of the offset view.
 	 */
 	private Color m_bgColorOffset = Color.GRAY;
+	public static final String PROP_BG_COLOR_OFFSET = "bgColorOffset";
 
 	/**
 	 * Background color of the hex view.
 	 */
 	private Color m_bgColorHex = Color.WHITE;
+	public static final String PROP_BG_COLOR_HEX = "bgColorHex";
 
 	/**
 	 * Background color of the ASCII view.
 	 */
 	private Color m_bgColorAscii = Color.WHITE;
+	public static final String PROP_BG_COLOR_ASCII = "bgColorAscii";
 
 	/**
 	 * Font color of the offset view.
 	 */
 	private Color m_fontColorOffsets = Color.WHITE;
+	public static final String PROP_FONT_COLOR_OFFSETS = "fontColorOffsets";
 
 	/**
 	 * Font color of the hex view.
 	 */
 	private Color m_fontColorHex1 = Color.BLUE;
+	public static final String PROP_FONT_COLOR_HEX1 = "fontColorHex1";
 
 	/**
 	 * Font color of the hex view.
 	 */
 	private Color m_fontColorHex2 = new Color(0x3399FF);
+	public static final String PROP_FONT_COLOR_HEX2 = "fontColorHex2";
 
 	/**
 	 * Font color of the ASCII view.
 	 */
 	private Color m_fontColorAscii = new Color(0x339900);
+	public static final String PROP_FONT_COLOR_ASCII = "fontColorAscii";
 
 	/**
 	 * Used to store the height of a single row.
@@ -192,6 +207,7 @@ public final class JHexView extends JComponent {
 	 * Address of the first offset in the data set.
 	 */
 	private long m_baseAddress = 0;
+	public static final String PROP_BASE_ADDRESS = "baseAddress";
 
 	/**
 	 * Last x-coordinate of the mouse cursor in the component.
@@ -208,6 +224,7 @@ public final class JHexView extends JComponent {
 	 * input or not.
 	 */
 	private boolean m_enabled = false;
+	public static final String PROP_ENABLED = "enabled";
 
 	/**
 	 * Color that is used to draw all text in disabled components.
@@ -249,22 +266,26 @@ public final class JHexView extends JComponent {
 	 * Start with an undefined definition status.
 	 */
 	private DefinitionStatus m_status = DefinitionStatus.UNDEFINED;
+	public static final String PROP_DEFINITION_STATUS = "definitionStatus";
 
 	/**
 	 * The menu creator is used to create popup menus when
 	 * the user right-clicks on the hex view control.
 	 */
 	private IMenuCreator m_menuCreator;
+	public static final String PROP_MENU_CREATOR = "menuCreator";
 
 	/**
 	 * Current addressing mode (32bit or 64bit)
 	 */
 	private AddressMode m_addressMode = AddressMode.BIT32;
+	public static final String PROP_ADDRESS_MODE = "addressMode";
 
 	/**
 	 * Width of the offset view part of the component.
 	 */
 	private int m_offsetViewWidth;
+	public static final String PROP_OFFSET_VIEW_WIDTH = "offsetViewWidth";
 
 	/**
 	 * Manager that keeps track of specially colored byte ranges.
@@ -335,13 +356,16 @@ public final class JHexView extends JComponent {
 	private int m_lastHighlightedNibble, m_prevLastHighlihtedNibble;
 
 	private IColormap m_colormap;
+	public static final String PROP_COLORMAP = "colormap";
 
 	private Color m_selectionColor = Color.YELLOW;
+	public static final String PROP_SELECTION_COLOR = "selectionColor";
 
 	/**
 	 * Determines whether the bytes inside a column are flipped or not.
 	 */
 	private boolean m_flipBytes = false;
+	public static final String PROP_FLIP_BYTES = "flipBytes";
 
 	/**
 	 * Creates a new hex viewer.
@@ -1333,7 +1357,9 @@ public final class JHexView extends JComponent {
 	 */
 	private void setCurrentPosition(final long newPosition) {
 		//setSelectionStart(newPosition);
+		long old = m_selectionStart;
 		m_selectionStart = newPosition; // Avoid notifying twice
+		firePropertyChange(PROP_SELECTION_START, old, m_selectionStart);
 
 		if (!isPositionVisible(getSelectionStart())) {
 			scrollToPosition(getSelectionStart());
@@ -1404,7 +1430,13 @@ public final class JHexView extends JComponent {
 	 */
 	private void updateOffsetViewWidth() {
 		final int addressBytes = m_addressMode == AddressMode.BIT32 ? 8 : 16;
-		m_offsetViewWidth = PADDING_OFFSETVIEW + m_charWidth * addressBytes;
+
+		int temp = PADDING_OFFSETVIEW + m_charWidth * addressBytes;
+		if (temp != m_offsetViewWidth) {
+			int old = m_offsetViewWidth;
+			m_offsetViewWidth = temp;
+			firePropertyChange(PROP_OFFSET_VIEW_WIDTH, old, m_offsetViewWidth);
+		}
 	}
 
 	/**
@@ -1848,7 +1880,9 @@ public final class JHexView extends JComponent {
 			throw new NullPointerException("Error: Address mode can't be null");
 		}
 
+		AddressMode old = m_addressMode;
 		m_addressMode = mode;
+		firePropertyChange(PROP_ADDRESS_MODE, old, m_addressMode);
 
 		updateOffsetViewWidth();
 		updatePreferredSize();
@@ -1867,7 +1901,9 @@ public final class JHexView extends JComponent {
 			throw new NullPointerException("Error: Color can't be null");
 		}
 
+		Color old = m_bgColorAscii;
 		m_bgColorAscii = color;
+		firePropertyChange(PROP_BG_COLOR_ASCII, old, m_bgColorAscii);
 
 		repaint();
 	}
@@ -1885,7 +1921,9 @@ public final class JHexView extends JComponent {
 			throw new NullPointerException("Error: Color can't be null");
 		}
 
+		Color old = m_bgColorHex;
 		m_bgColorHex = color;
+		firePropertyChange(PROP_BG_COLOR_HEX, old, m_bgColorHex);
 
 		repaint();
 	}
@@ -1903,7 +1941,9 @@ public final class JHexView extends JComponent {
 			throw new NullPointerException("Error: Color can't be null");
 		}
 
+		Color old = m_bgColorOffset;
 		m_bgColorOffset = color;
+		firePropertyChange(PROP_BG_COLOR_OFFSET, old, m_bgColorOffset);
 
 		repaint();
 	}
@@ -1921,7 +1961,9 @@ public final class JHexView extends JComponent {
 			throw new IllegalArgumentException("Error: Base address can't be negative");
 		}
 
-		this.m_baseAddress = baseAddress;
+		long old = m_baseAddress;
+		m_baseAddress = baseAddress;
+		firePropertyChange(PROP_BASE_ADDRESS, old, m_baseAddress);
 
 		repaint();
 	}
@@ -1943,7 +1985,9 @@ public final class JHexView extends JComponent {
 			throw new IllegalArgumentException("Error: Number of bytes can't be more than the number of bytes per row");
 		}
 
+		int old = m_bytesPerColumn;
 		m_bytesPerColumn = bytes;
+		firePropertyChange(PROP_BYTES_PER_COLUMN, old, m_bytesPerColumn);
 
 		updateHexViewWidth();
 		updatePreferredSize();
@@ -1968,7 +2012,9 @@ public final class JHexView extends JComponent {
 			throw new IllegalArgumentException("Error: Value must be positive");
 		}
 
+		int old = m_bytesPerRow;
 		m_bytesPerRow = value;
+		firePropertyChange(PROP_BYTES_PER_ROW, old, m_bytesPerRow);
 
 		updateHexViewWidth();
 		updatePreferredSize();
@@ -1977,7 +2023,9 @@ public final class JHexView extends JComponent {
 	}
 
 	public void setColormap(final IColormap colormap) {
+		IColormap old = m_colormap;
 		m_colormap = colormap;
+		firePropertyChange(PROP_COLORMAP, old, m_colormap);
 
 		repaint();
 	}
@@ -1998,7 +2046,9 @@ public final class JHexView extends JComponent {
 			throw new IllegalArgumentException("Error: Spacing must be positive");
 		}
 
+		int old = m_columnSpacing;
 		m_columnSpacing = spacing;
+		firePropertyChange(PROP_COLUMN_SPACING, old, m_columnSpacing);
 
 		repaint();
 	}
@@ -2037,7 +2087,9 @@ public final class JHexView extends JComponent {
 			m_dataProvider.removeListener(m_listener);
 		}
 
+		IDataProvider old = m_dataProvider;
 		m_dataProvider = data;
+		firePropertyChange(PROP_DATA_PROVIDER, old, m_dataProvider);
 
 		/**
 		 * Add a data listener to the new data source so that the
@@ -2069,7 +2121,9 @@ public final class JHexView extends JComponent {
 			throw new NullPointerException("Error: Definition status can't be null");
 		}
 
+		DefinitionStatus old = m_status;
 		m_status = status;
+		firePropertyChange(PROP_DEFINITION_STATUS, old, m_status);
 
 		repaint();
 	}
@@ -2086,7 +2140,10 @@ public final class JHexView extends JComponent {
 			return;
 		}
 
-		this.m_enabled = enabled;
+		boolean old = m_enabled;
+		m_enabled = enabled;
+		firePropertyChange(PROP_ENABLED, old, m_enabled);
+
 		//		m_scrollbar.setEnabled(enabled);
 		repaint();
 	}
@@ -2097,7 +2154,9 @@ public final class JHexView extends JComponent {
 			return;
 		}
 
+		boolean old = m_flipBytes;
 		m_flipBytes = flip;
+		firePropertyChange(PROP_FLIP_BYTES, old, m_flipBytes);
 
 		repaint();
 	}
@@ -2115,7 +2174,9 @@ public final class JHexView extends JComponent {
 			throw new NullPointerException("Error: Color can't be null");
 		}
 
+		Color old = m_fontColorAscii;
 		m_fontColorAscii = color;
+		firePropertyChange(PROP_FONT_COLOR_ASCII, old, m_fontColorAscii);
 
 		repaint();
 	}
@@ -2133,7 +2194,9 @@ public final class JHexView extends JComponent {
 			throw new NullPointerException("Error: Color can't be null");
 		}
 
+		Color old = m_fontColorHex1;
 		m_fontColorHex1 = color;
+		firePropertyChange(PROP_FONT_COLOR_HEX1, old, m_fontColorHex1);
 
 		repaint();
 	}
@@ -2151,7 +2214,9 @@ public final class JHexView extends JComponent {
 			throw new NullPointerException("Error: Color can't be null");
 		}
 
+		Color old = m_fontColorHex2;
 		m_fontColorHex2 = color;
+		firePropertyChange(PROP_FONT_COLOR_HEX2, old, m_fontColorHex2);
 
 		repaint();
 	}
@@ -2169,7 +2234,9 @@ public final class JHexView extends JComponent {
 			throw new NullPointerException("Error: Color can't be null");
 		}
 
+		Color old = m_fontColorOffsets;
 		m_fontColorOffsets = color;
+		firePropertyChange(PROP_FONT_COLOR_OFFSETS, old, m_fontColorOffsets);
 
 		repaint();
 	}
@@ -2210,7 +2277,9 @@ public final class JHexView extends JComponent {
 			throw new IllegalArgumentException("Error: Width must be positive");
 		}
 
+		int old = m_hexViewWidth;
 		m_hexViewWidth = width;
+		firePropertyChange(PROP_HEX_VIEW_WIDTH, old, m_hexViewWidth);
 
 		repaint();
 	}
@@ -2221,7 +2290,9 @@ public final class JHexView extends JComponent {
 	 * @param creator The new menu creator. If this parameter is null, no context menu is shown in the component.
 	 */
 	public void setMenuCreator(final IMenuCreator creator) {
+		IMenuCreator old = creator;
 		m_menuCreator = creator;
+		firePropertyChange(PROP_MENU_CREATOR, old, m_menuCreator);
 	}
 
 	public void setSelectionColor(final Color color) {
@@ -2230,14 +2301,18 @@ public final class JHexView extends JComponent {
 			throw new NullPointerException("Error: Color can't be null");
 		}
 
+		Color old = m_selectionColor;
 		m_selectionColor = color;
+		firePropertyChange(PROP_SELECTION_COLOR, old, m_selectionColor);
 
 		repaint();
 	}
 
 	public void setSelectionLength(final long selectionLength) {
 
+		long old = m_selectionLength;
 		m_selectionLength = selectionLength;
+		firePropertyChange(PROP_SELECTION_LENGTH, old, m_selectionLength);
 
 		for (final IHexViewListener listener : m_listeners) {
 			listener.selectionChanged(m_selectionStart, m_selectionLength);
@@ -2523,10 +2598,18 @@ public final class JHexView extends JComponent {
 					setCurrentPosition(position);
 
 					if (isInsideHexView(x, y)) {
-						m_activeView = Views.HEX_VIEW;
+						if (m_activeView != Views.HEX_VIEW) {
+							Views old = m_activeView;
+							m_activeView = Views.HEX_VIEW;
+							firePropertyChange(PROP_ACTIVE_VIEW, old, m_activeView);
+						}
 					}
 					else if (isInsideAsciiView(x, y)) {
-						m_activeView = Views.ASCII_VIEW;
+						if (m_activeView != Views.ASCII_VIEW) {
+							Views old = m_activeView;
+							m_activeView = Views.ASCII_VIEW;
+							firePropertyChange(PROP_ACTIVE_VIEW, old, m_activeView);
+						}
 					}
 
 					repaint();
