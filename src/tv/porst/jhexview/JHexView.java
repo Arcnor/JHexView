@@ -592,13 +592,15 @@ public final class JHexView extends JComponent {
 	 */
 	private void drawBackground(final Graphics g) {
 
+		int hexViewLeft = getHexViewLeft();
+
 		// Draw the background of the offset view
 		g.setColor(m_bgColorOffset);
 		g.fillRect(-m_firstColumn * m_charWidth, 0, m_offsetViewWidth, getHeight());
 
 		// Draw the background of the hex view
 		g.setColor(m_bgColorHex);
-		g.fillRect(-m_firstColumn * m_charWidth + m_offsetViewWidth, 0, m_hexViewWidth, getHeight());
+		g.fillRect(hexViewLeft, 0, m_hexViewWidth, getHeight());
 
 		// Draw the background of the ASCII view
 		g.setColor(m_bgColorAscii);
@@ -606,8 +608,8 @@ public final class JHexView extends JComponent {
 
 		// Draw the lines that separate the individual views
 		g.setColor(Color.BLACK);
-		g.drawLine(-m_firstColumn * m_charWidth + m_offsetViewWidth, 0, -m_firstColumn * m_charWidth + m_offsetViewWidth, getHeight());
-		g.drawLine(-m_firstColumn * m_charWidth + m_offsetViewWidth + m_hexViewWidth, 0, -m_firstColumn * m_charWidth + m_offsetViewWidth + m_hexViewWidth, getHeight());
+		g.drawLine(hexViewLeft, 0, hexViewLeft, getHeight());
+		g.drawLine(hexViewLeft + m_hexViewWidth, 0, hexViewLeft + m_hexViewWidth, getHeight());
 	}
 
 	/**
@@ -1775,6 +1777,10 @@ public final class JHexView extends JComponent {
 	 */
 	public int getHexViewWidth() {
 		return m_hexViewWidth;
+	}
+
+	public int getOffsetViewWidth() {
+		return m_offsetViewWidth;
 	}
 
 	public long getLastOffset() {
