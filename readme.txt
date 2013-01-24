@@ -1,3 +1,7 @@
+Fork has moved here: https://bitbucket.org/arcnor/jhexview
+
+Original readme:
+- - -
 JHexView component by Sebastian Porst (sp@porst.tv)
 
 Official website: https://github.com/sporst/JHexView
